@@ -1,0 +1,10 @@
+# Don't upload these files to Railway
+
+node_modules/
+.env
+.env.local
+.env.example
+_.log
+.DS_Store
+test-_.js
+RAILWAY_DEPLOYMENT.md

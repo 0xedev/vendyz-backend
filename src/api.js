@@ -25,7 +25,8 @@ import {
 dotenv.config();
 
 const app = express();
-const PORT = process.env.API_PORT || 3001;
+// Railway provides PORT env variable, fallback to API_PORT or 3001
+const PORT = process.env.PORT || process.env.API_PORT || 3001;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 // Middleware
