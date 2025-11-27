@@ -21,6 +21,7 @@ import {
   getDatabaseStats,
   supabase,
 } from "./database.js";
+import { getCachedPrices, forceUpdateCache } from "./priceCache.js";
 
 dotenv.config();
 
@@ -88,6 +89,47 @@ app.get("/api/stats", async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Failed to fetch statistics",
+    });
+  }
+});
+
+/**
+ * Get cached token prices and balances from TokenTreasury
+ * GET /api/prices
+ */
+app.get("/api/prices", async (req, res) => {
+  try {
+    const priceData = getCachedPrices();
+    res.json({
+      success: true,
+      data: priceData,
+    });
+  } catch (error) {
+    console.error("Error fetching prices:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch price data",
+    });
+  }
+});
+
+/**
+ * Force update price cache (admin endpoint)
+ * POST /api/prices/refresh
+ */
+app.post("/api/prices/refresh", async (req, res) => {
+  try {
+    const priceData = await forceUpdateCache();
+    res.json({
+      success: true,
+      message: "Price cache updated",
+      data: priceData,
+    });
+  } catch (error) {
+    console.error("Error refreshing prices:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to refresh price cache",
     });
   }
 });

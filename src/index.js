@@ -38,6 +38,11 @@ import {
   stopAutoCleanup,
 } from "./database.js";
 import { startApiServer, stopApiServer } from "./api.js";
+import {
+  startPriceCache,
+  stopPriceCache,
+  getCachedTokenPrice,
+} from "./priceCache.js";
 
 dotenv.config();
 
@@ -568,11 +573,15 @@ let unwatchEvents;
     console.log("\n🔒 Starting auto-cleanup for wallet credentials...");
     startAutoCleanup();
 
-    // 4. Start API server
+    // 4. Start price cache service
+    console.log("\n💰 Starting price cache service...");
+    startPriceCache();
+
+    // 5. Start API server
     console.log("\n🌐 Starting API server...");
     apiServer = await startApiServer();
 
-    // 5. Start event listener
+    // 6. Start event listener
     console.log("\n");
     unwatchEvents = await startEventListener();
 
@@ -599,6 +608,7 @@ async function shutdown() {
     await stopApiServer(apiServer);
   }
 
+  stopPriceCache();
   stopAutoCleanup();
   await closeDatabase();
 
