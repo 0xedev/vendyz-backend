@@ -189,23 +189,37 @@ async function updatePriceCache() {
     const ethWithPrice = {
       ...ethData,
       price: ethPrice,
+      priceUSD: ethPrice,
       value: ethValue,
+      valueUSD: ethValue,
       valueFormatted: `$${ethValue.toLocaleString("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`,
-      walletValue: ethAmountPerWallet * ethPrice, // Value of ETH per wallet
+      walletValue: ethAmountPerWallet * ethPrice, // Value of ETH per wallet (0.00007 ETH)
+      walletValueUSD: ethAmountPerWallet * ethPrice,
     };
 
     // 6. Combine data and calculate values for tokens
     const tokensWithPrices = tokensData.map((token) => {
-      const price = prices[token.address] || 0;
+      const priceData = prices[token.address];
+      // Extract the actual price value (handle both number and object formats)
+      const price =
+        typeof priceData === "number"
+          ? priceData
+          : typeof priceData === "object" && priceData?.price
+            ? priceData.price
+            : 0;
+
       const value = token.balanceFormatted * price;
+      const valueUSD = value; // Store the USD value
 
       return {
         ...token,
         price: price,
+        priceUSD: price,
         value: value,
+        valueUSD: valueUSD,
         valueFormatted: `$${value.toLocaleString("en-US", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
@@ -217,13 +231,19 @@ async function updatePriceCache() {
     const allTokens = [ethWithPrice, ...tokensWithPrices];
 
     // 7. Update cache
-    const totalValue = allTokens.reduce((sum, t) => sum + t.value, 0);
+    const totalValue = allTokens.reduce((sum, t) => sum + (t.value || 0), 0);
+    const totalValueUSD = totalValue;
 
     priceCache = {
       tokens: allTokens,
       lastUpdate: new Date().toISOString(),
       nextUpdate: new Date(Date.now() + UPDATE_INTERVAL).toISOString(),
       totalValue: totalValue,
+      totalValueUSD: totalValueUSD,
+      totalValueFormatted: `$${totalValueUSD.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
       tokenCount: allTokens.length,
       ethAmountPerWallet: ethAmountPerWallet,
       ethAmountWei: ETH_AMOUNT_WEI.toString(),
